@@ -15,6 +15,9 @@ type Video struct {
 	Title           string
 	Description     string
 	Author          string
+	ViewCount string
+	PublishDate string
+	UploadDate string
 	Duration        time.Duration
 	Formats         FormatList
 	DASHManifestURL string // URI of the DASH manifest file
@@ -101,6 +104,9 @@ func (v *Video) extractDataFromPlayerResponse(prData playerResponseData) error {
 	v.Title = prData.VideoDetails.Title
 	v.Description = prData.VideoDetails.ShortDescription
 	v.Author = prData.VideoDetails.Author
+	v.ViewCount = prData.VideoDetails.ViewCount
+	v.PublishDate = prData.Microformat.PublishDate
+	v.UploadDate = prData.Microformat.UploadDate
 
 	if seconds, _ := strconv.Atoi(prData.Microformat.PlayerMicroformatRenderer.LengthSeconds); seconds > 0 {
 		v.Duration = time.Duration(seconds) * time.Second
