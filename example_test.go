@@ -4,7 +4,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/kkdai/youtube/v2"
+	"github.com/gditsec/youtube"
 )
 
 // ExampleDownload : Example code for how to use this package for download video.

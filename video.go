@@ -105,8 +105,8 @@ func (v *Video) extractDataFromPlayerResponse(prData playerResponseData) error {
 	v.Description = prData.VideoDetails.ShortDescription
 	v.Author = prData.VideoDetails.Author
 	v.ViewCount = prData.VideoDetails.ViewCount
-	v.PublishDate = prData.Microformat.PublishDate
-	v.UploadDate = prData.Microformat.UploadDate
+	v.PublishDate = prData.Microformat.PlayerMicroformatRenderer.PublishDate
+	v.UploadDate = prData.Microformat.PlayerMicroformatRenderer.UploadDate
 
 	if seconds, _ := strconv.Atoi(prData.Microformat.PlayerMicroformatRenderer.LengthSeconds); seconds > 0 {
 		v.Duration = time.Duration(seconds) * time.Second
