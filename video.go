@@ -90,10 +90,15 @@ func (v *Video) parseVideoPage(body []byte) error {
 	if err := json.Unmarshal(ytInitialData[1], &initData); err != nil {
 		return fmt.Errorf("unable to parse initial data JSON: %w", err)
 	}
-	if len(initData.Contents.TwoColumnWatchNextResults.Results.Results.Contents) == 0 {
-		return errors.New("unable to parse simpletext")
+	for _, c := range initData.Contents.TwoColumnWatchNextResults.Results.Results.Contents {
+		if len(c.VideoPrimaryInfoRenderer.DateText.SimpleText) != 0 {
+			v.PublishDate = c.VideoPrimaryInfoRenderer.DateText.SimpleText
+			break
+		}
 	}
-	v.PublishDate = initData.Contents.TwoColumnWatchNextResults.Results.Results.Contents[0].VideoPrimaryInfoRenderer.DateText.SimpleText
+	if len(v.PublishDate) == 0 {
+		return errors.New("unable to get simple text")
+	}
 
 	return v.extractDataFromPlayerResponse(prData)
 }
