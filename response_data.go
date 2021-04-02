@@ -156,3 +156,21 @@ type Format struct {
 		End   string `json:"end"`
 	} `json:"indexRange"`
 }
+
+type initialData struct {
+	Contents struct {
+		TwoColumnWatchNextResults struct {
+			Results struct {
+				Results struct {
+					Contents []struct {
+						VideoPrimaryInfoRenderer struct {
+							DateText struct {
+								SimpleText string `json:"simpleText"`
+							} `json:"dateText"`
+						} `json:"videoPrimaryInfoRenderer"`
+					} `json:"contents"`
+				} `json:"results"`
+			} `json:"results"`
+		} `json:"twoColumnWatchNextResults"`
+	} `json:"contents"`
+}

@@ -33,30 +33,16 @@ func (c *Client) GetVideoContext(ctx context.Context, url string) (*Video, error
 		return nil, fmt.Errorf("extractVideoID failed: %w", err)
 	}
 
-	// Circumvent age restriction to pretend access through googleapis.com
-	eurl := "https://youtube.googleapis.com/v/" + id
-	body, err := c.httpGetBodyBytes(ctx, "https://youtube.com/get_video_info?video_id="+id+"&eurl="+eurl)
-	if err != nil {
-		return nil, err
-	}
-
 	v := &Video{
 		ID: id,
 	}
 
-	err = v.parseVideoInfo(body)
-
-	// If the uploader has disabled embedding the video on other sites, parse video page
-	if err == ErrNotPlayableInEmbed {
-		html, err := c.httpGetBodyBytes(ctx, "https://www.youtube.com/watch?v="+id)
-		if err != nil {
-			return nil, err
-		}
-
-		return v, v.parseVideoPage(html)
+	html, err := c.httpGetBodyBytes(ctx, "https://www.youtube.com/watch?v="+id)
+	if err != nil {
+		return nil, err
 	}
 
-	return v, err
+	return v, v.parseVideoPage(html)
 }
 
 // GetStream returns the HTTP response for a specific format
@@ -108,6 +94,8 @@ func (c *Client) httpGet(ctx context.Context, url string) (resp *http.Response, 
 	if err != nil {
 		return nil, err
 	}
+	//req.Header.Add("accept-language", "zh-CN,zh;q=0.9")
+	req.Header.Add("cookie", "PREF=tz=Asia.Shanghai")
 
 	resp, err = client.Do(req)
 	if err != nil {

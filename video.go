@@ -15,9 +15,9 @@ type Video struct {
 	Title           string
 	Description     string
 	Author          string
-	ViewCount string
-	PublishDate string
-	UploadDate string
+	ViewCount       string
+	PublishDate     string
+	UploadDate      string
 	Duration        time.Duration
 	Formats         FormatList
 	DASHManifestURL string // URI of the DASH manifest file
@@ -62,7 +62,10 @@ func (v *Video) isVideoFromInfoDownloadable(prData playerResponseData) error {
 
 var playerResponsePattern = regexp.MustCompile(`var ytInitialPlayerResponse\s*=\s*(\{.+?\});`)
 
+var initialDataPattern = regexp.MustCompile(`var ytInitialData\s*=\s*(\{.+?\});`)
+
 func (v *Video) parseVideoPage(body []byte) error {
+	// 解释ytInitialPlayerResponse
 	initialPlayerResponse := playerResponsePattern.FindSubmatch(body)
 	if initialPlayerResponse == nil || len(initialPlayerResponse) < 2 {
 		return errors.New("no ytInitialPlayerResponse found in the server's answer")
@@ -76,6 +79,21 @@ func (v *Video) parseVideoPage(body []byte) error {
 	if err := v.isVideoFromPageDownloadable(prData); err != nil {
 		return err
 	}
+
+	// 解释ytInitialData
+	ytInitialData := initialDataPattern.FindSubmatch(body)
+	if ytInitialData == nil || len(ytInitialData) < 2 {
+		return errors.New("no ytInitialData found in the server's answer")
+	}
+
+	var initData initialData
+	if err := json.Unmarshal(ytInitialData[1], &initData); err != nil {
+		return fmt.Errorf("unable to parse initial data JSON: %w", err)
+	}
+	if len(initData.Contents.TwoColumnWatchNextResults.Results.Results.Contents) != 1 {
+		return errors.New("unable to parse simpletext")
+	}
+	v.PublishDate = initData.Contents.TwoColumnWatchNextResults.Results.Results.Contents[0].VideoPrimaryInfoRenderer.DateText.SimpleText
 
 	return v.extractDataFromPlayerResponse(prData)
 }
@@ -105,7 +123,7 @@ func (v *Video) extractDataFromPlayerResponse(prData playerResponseData) error {
 	v.Description = prData.VideoDetails.ShortDescription
 	v.Author = prData.VideoDetails.Author
 	v.ViewCount = prData.VideoDetails.ViewCount
-	v.PublishDate = prData.Microformat.PlayerMicroformatRenderer.PublishDate
+	// v.PublishDate = prData.Microformat.PlayerMicroformatRenderer.PublishDate
 	v.UploadDate = prData.Microformat.PlayerMicroformatRenderer.UploadDate
 
 	if seconds, _ := strconv.Atoi(prData.Microformat.PlayerMicroformatRenderer.LengthSeconds); seconds > 0 {
